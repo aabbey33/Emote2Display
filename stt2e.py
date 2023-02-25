@@ -1,4 +1,8 @@
 #!/usr/bin/python
+#With assistance from:
+# https://stackoverflow.com/questions/268272/getting-key-with-maximum-value-in-dictionary
+# https://towardsdatascience.com/text2emotion-python-package-to-detect-emotions-from-textual-data-b2e7b7ce1153
+# https://www.simplilearn.com/tutorials/python-tutorial/speech-recognition-in-python
 
 import operator
 
