@@ -5,6 +5,7 @@
 # https://www.simplilearn.com/tutorials/python-tutorial/speech-recognition-in-python
 
 import operator
+from threading import Lock, Thread
 
 import speech_recognition as sr
 import text2emotion as te
@@ -15,11 +16,16 @@ r = sr.Recognizer()
 
 ##Emotion Bit
 
-def recognize(phrase):
+lock = Lock()
+
+def recognize(phrase, lock):
+    lock.acquire(blocking=False)
+    print("has the lock")
     emoteRec = te.get_emotion(phrase) #getting the emotion from a phrase
     #print(emoteRec)
     maxStat = max(emoteRec.items(), key=operator.itemgetter(1))[0]
     print(maxStat)
+    lock.release()
 
 
 def recognize_speech_from_mic(recognizer, microphone):
@@ -59,11 +65,13 @@ if __name__ == "__main__":
     while True:
         text = recognize_speech_from_mic(recognizer, microphone)
         if text["transcription"]:
-            recognize(text["transcription"])
+            print(text["transcription"])
+            Thread(target=recognize, args=(text["transcription"],lock))
         if not text["success"]:
-            recognize(text["success"])
+            print(text["success"])
+            Thread(target=recognize, args=(text["transcription"],lock))
         if text["error"]:
-            print("ERROR: {}".format(text["error"]))
+            print(f"ERROR: {text['error']}")
             
         
         
@@ -85,5 +93,3 @@ if __name__ == "__main__":
 #        print("input: ",myText)
 #        #SpeakText(myText)
 #        recognize(myText)
-
-
