@@ -5,17 +5,10 @@
 # https://www.simplilearn.com/tutorials/python-tutorial/speech-recognition-in-python
 
 import operator
-from threading import Lock, Thread
+from threading import Thread
 
 import speech_recognition as sr
 import text2emotion as te
-
-
-r = sr.Recognizer()
-
-# Emotion Bit
-
-lock = Lock()
 
 
 # def recognize_speech_from_mic(recognizer, microphone):
@@ -64,7 +57,6 @@ lock = Lock()
 #             print(f"ERROR: {text['error']}")
 
 
-# function majoris
 # while True:
 #    with sr.Microphone() as source2:
 #
@@ -119,7 +111,6 @@ class Listener:
 
         max_stat = max(emote_rec.items(), key=operator.itemgetter(1))[0]
         print(max_stat)
-
 
 
 
