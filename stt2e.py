@@ -10,6 +10,7 @@ from threading import Lock, Thread
 import speech_recognition as sr
 import text2emotion as te
 
+
 text = "" #Empty Text variable to be leveraged later by speech-to-text
 
 r = sr.Recognizer()
@@ -93,3 +94,43 @@ if __name__ == "__main__":
 #        print("input: ",myText)
 #        #SpeakText(myText)
 #        recognize(myText)
+
+class Listener:
+    
+    def __init__(self):
+        self.recognizer = sr.Recognizer()
+        
+        #self.listener = Listener
+        
+        #Handle Visuals here and output
+        print("placeholder")
+        
+        Thread(target=self.run_Listener).start()
+        
+        #do the loop
+
+        
+    def run_Listener(self):
+        while True:
+            try:
+                with sr.Microphone() as mic:
+                    self.recognizer.adjust_for_ambient_noise(mic, duration=0.2)
+                    
+                    audio = self.recognizer.listen(mic)
+                    
+                    text = self.recognizer.recognize_google(audio)
+                    
+                    text = text.lower()
+                    
+                    if text is not None:
+                        
+                    
+                    
+            except Exception as e:
+                print(e)
+                continue
+                    
+    def recognize(self):
+        pass
+                    
+Listener()
