@@ -1,0 +1,8 @@
+librosa==0.6.3
+numba==0.48.0
+numpy==1.23.5
+PyAudio==0.2.13
+scikit_learn==1.2.1
+soundfile==0.12.1
+SpeechRecognition==3.9.0
+text2emotion==0.0.5
