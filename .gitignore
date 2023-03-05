@@ -128,7 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 RAVDESS/
-result/
 .idea/Emote2Display.iml
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/misc.xml
