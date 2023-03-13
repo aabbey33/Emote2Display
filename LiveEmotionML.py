@@ -7,24 +7,29 @@
 # https://github.com/Zolmeister/AudioMan
 # https://zolmeister.com/2012/10/back-light-music-leds.html
 
+''' 
+A hobby Python script made to perform sentiment analysis on live
+microphone capture, mostly for cosplay purposes and future 
+interaction with arduino's as an alternative to 
+gesture, vocal, or physical controls
+'''
 
-import numpy as np
-import tkinter as tk
-
-import librosa
 import glob
 import os
 import pickle
-import soundfile
-import pyaudio
 import sys
+import tkinter as tk
 import wave
-
 from array import array
+from threading import Thread
+
+import librosa
+import numpy as np
+import pyaudio
+import soundfile
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
-from threading import Thread
 
 SILENCE = 10
 THRESHOLD = 500
@@ -46,38 +51,41 @@ stream = P.open(format=FORMAT,
 
 print("* recording")
 
-maxNormal = 1
-prevVals = [0, 255]
-prev = 0
-allArray = []
+MAXNORMAL = 1
+PREVVALS = [0, 255]
+PREV = 0
+ALLARRAY = []
 
 
 def is_silent(snd_data):
+    '''Checks if the input data is silent'''
     return max(snd_data) < THRESHOLD
 
 
 def normalize(snd_data):
+    '''Normalizes the audio passed through'''
     maximum = 16384
     times = float(maximum) / max(abs(i) for i in snd_data)
 
-    r = array('h')
+    array_r = array('h')
     for i in snd_data:
-        r.append(int(i * times))
-    return r
+        array_r.append(int(i * times))
+    return array_r
 
 
 def trim(snd_data):
+    ''' trims the input audio signal data'''
     def _trim(snd_data2):
         snd_started = False
-        r = array('h')
+        array_r = array('h')
 
         for i in snd_data2:
             if not snd_started and abs(i) > THRESHOLD:
                 snd_started = True
-                r.append(i)
+                array_r.append(i)
             elif snd_started:
-                r.append(i)
-        return r
+                array_r.append(i)
+        return array_r
 
     snd_data = _trim(snd_data)
     snd_data.reverse()
@@ -87,13 +95,15 @@ def trim(snd_data):
 
 
 def add_silence(snd_data, seconds):
-    r = array('h', [0 for _ in range(int(seconds * RATE))])
-    r.extend(snd_data)
-    r.extend([0 for _ in range(int(seconds * RATE))])
-    return r
+    ''' adds silence to input data signal'''
+    array_r = array('h', [0 for _ in range(int(seconds * RATE))])
+    array_r.extend(snd_data)
+    array_r.extend([0 for _ in range(int(seconds * RATE))])
+    return array_r
 
 
 class Main:
+    '''The main class for the script. it will be called later on in the script. '''
 
     def __init__(self):
         print("Starting...")
@@ -113,8 +123,9 @@ class Main:
         # do the loop
 
     def aud_loop(self):
+        ''' general audio loop, intended to run in an independant thread through the main loop'''
         while True:
-            r = array('h')
+            array_r = array('h')
 
             num_silent = 0
 
@@ -122,7 +133,7 @@ class Main:
                 snd_data = array('h', stream.read(CHUNK))
                 if sys.byteorder == 'big':
                     snd_data.byteswap()
-                r.extend(snd_data)
+                array_r.extend(snd_data)
 
                 silent = is_silent(snd_data)
 
@@ -132,23 +143,21 @@ class Main:
                 if num_silent > SILENCE:
                     break
 
-            data = r
+            data = array_r
 
             data = trim(data)
             data = add_silence(data, 0.5)
-
             print("writing data")
-            wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-            wf.setnchannels(CHANNELS)
-            wf.setsampwidth(pyaudio.get_sample_size(FORMAT))
-            wf.setframerate(RATE)
-            wf.writeframes(data)
-            wf.close()
-
-
+            wave_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+            wave_file.setnchannels(CHANNELS)
+            wave_file.setsampwidth(pyaudio.get_sample_size(FORMAT))
+            wave_file.setframerate(RATE)
+            wave_file.writeframes(data)
+            wave_file.close()
             print("extracting features")
             try:
-                features = extract_feature(WAVE_OUTPUT_FILENAME, mfcc=True, chroma=True, mel=True).reshape(1, -1)
+                features = extract_feature(
+                    WAVE_OUTPUT_FILENAME, mfcc=True, chroma=True, mel=True).reshape(1, -1)
                 print("predicting")
                 result = self.model.predict(features)[0]
                 print(result)
@@ -157,12 +166,9 @@ class Main:
                 self.label.config(text=f"{result}")
                 self.label.update()
                 print("TK Updated")
-
                 # todo: add persistence after further consideration of implementation
-
-            except Exception as e:
-                print(e)
-
+            except Exception as file_exception:
+                print(file_exception)
 
 
 def extract_feature(file_name, **kwargs):
@@ -185,35 +191,41 @@ def extract_feature(file_name, **kwargs):
     tonnetz = kwargs.get("tonnetz")
 
     with soundfile.SoundFile(file_name) as sound_file:
-        X = sound_file.read(dtype="float32")
+        sound_filex = sound_file.read(dtype="float32")
         sample_rate = sound_file.samplerate
         if chroma or contrast:
-            stft = np.abs(librosa.stft(X))
+            stft = np.abs(librosa.stft(sound_filex))
         result = np.array([])
 
         if mfcc:
-            mfccs = np.mean(librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=40).T, axis=0)
+            mfccs = np.mean(librosa.feature.mfcc(
+                y=sound_filex, sr=sample_rate, n_mfcc=40).T, axis=0)
             result = np.hstack((result, mfccs))
 
         if chroma:
-            chroma = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
+            chroma = np.mean(librosa.feature.chroma_stft(
+                S=stft, sr=sample_rate).T, axis=0)
             result = np.hstack((result, chroma))
 
         if mel:
-            mel = np.mean(librosa.feature.melspectrogram(X, sr=sample_rate).T, axis=0)
+            mel = np.mean(librosa.feature.melspectrogram(
+                sound_filex, sr=sample_rate).T, axis=0)
             result = np.hstack((result, mel))
 
         if contrast:
-            contrast = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sample_rate).T, axis=0)
+            contrast = np.mean(librosa.feature.spectral_contrast(
+                S=stft, sr=sample_rate).T, axis=0)
             result = np.hstack((result, contrast))
         if tonnetz:
-            tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(X), sr=sample_rate).T, axis=0)
+            tonnetz = np.mean(librosa.feature.tonnetz(
+                y=librosa.effects.harmonic(sound_filex), sr=sample_rate).T, axis=0)
             result = np.hstack((result, tonnetz))
     print(result)
     return result
 
 
 class Model:
+    '''Handles the ML model. mostly comprised of training and creation fo the model'''
     int2emotion = {
         "01": "neutral",
         "02": "calm",
@@ -233,7 +245,8 @@ class Model:
     }
 
     def load_data(self, test_size=0.2):
-        X, y = [], []
+        '''Loading the sound files to train the ML model'''
+        sound_filex, sound_filey = [], []
         for file in glob.glob("RAVDESS/data/Actor_*/*.wav"):
             basename = os.path.basename(file)
 
@@ -244,16 +257,24 @@ class Model:
 
             features = extract_feature(file, mfcc=True, chroma=True, mel=True)
 
-            X.append(features)
-            y.append(emotion)
-        return train_test_split(np.array(X), y, test_size=test_size, random_state=7)
+            sound_filex.append(features)
+            sound_filey.append(emotion)
+        return train_test_split(
+            np.array(sound_filex),
+            sound_filey,
+            test_size=test_size,
+            random_state=7
+            )
 
     def train_model(self):
-        X_train, X_test, y_train, y_test = self.load_data(test_size=0.25)
+        '''trains the ML model'''
+        train_x, test_x, y_train, y_test = self.load_data(test_size=0.25)
 
-        print("[+] Number of training samples:", X_train.shape[0])
-        print("[+] Number of testing samples:", X_test.shape[0])
-        print("[+] Number of features", X_train.shape[1])
+        print("[+] Number of training samples:",
+              train_x.shape[0])  # type: ignore
+        print("[+] Number of testing samples:",
+              test_x.shape[0])  # type: ignore
+        print("[+] Number of features", train_x.shape[1])  # type: ignore
 
         model_params = {
             'alpha': 0.1,
@@ -266,9 +287,9 @@ class Model:
 
         model = MLPClassifier(**model_params)
 
-        model.fit(X_train, y_train)
+        model.fit(train_x, y_train)
 
-        y_pred = model.predict(X_test)
+        y_pred = model.predict(test_x)
 
         accuracy = accuracy_score(y_true=y_test, y_pred=y_pred)
 
