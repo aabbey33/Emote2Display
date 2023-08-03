@@ -34,7 +34,7 @@ from sklearn.neural_network import MLPClassifier
 SILENCE = 10
 THRESHOLD = 500
 
-CHUNK = 512
+CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
