@@ -1,7 +1,3 @@
 {
-    "python.analysis.typeCheckingMode": "basic",
-    "python.linting.pycodestyleEnabled": false,
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pydocstyleEnabled": false
+  "python.analysis.typeCheckingMode": "basic"
 }
