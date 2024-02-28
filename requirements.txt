@@ -1,4 +1,4 @@
-librosa==0.6.3
+librosa==0.6.3; python_version == '3.8'
 numba==0.48.0
 numpy==1.23.5
 PyAudio==0.2.13

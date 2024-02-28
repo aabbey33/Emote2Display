@@ -7,9 +7,9 @@
 import operator
 from threading import Thread
 
+import tkinter as tk
 import speech_recognition as sr
 import text2emotion as te
-import tkinter as tk
 
 
 class Listener:
