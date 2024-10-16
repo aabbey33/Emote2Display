@@ -3,10 +3,13 @@
   "python.analysis.autoImportCompletions": true,
   "cSpell.words": [
     "byteswap",
+    "dtype",
     "hstack",
+    "melspectrogram",
     "mfcc",
     "mfccs",
     "RAVDESS",
+    "samplerate",
     "stft",
     "tonnetz"
   ]

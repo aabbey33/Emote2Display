@@ -14,11 +14,11 @@ import wave
 import tkinter as tk
 
 import numpy as np
-import librosa
+import librosa  # type: ignore
 import pyaudio
-import soundfile
+import soundfile  # type: ignore
 
-import ModelHandler
+import model_handler
 from sound_functions import add_silence, is_silent, trim
 
 SILENCE = 10
@@ -218,7 +218,7 @@ class Main:
 if __name__ == "__main__":
     if not os.path.isdir("result"):
         print("Model not detected! Training now...")
-        ModelHandler.train_model()
+        model_handler.train_model()
     Main()
 
 audio_stream.close()
