@@ -53,11 +53,6 @@ stream = P.open(
 
 print("* recording")
 
-# MAX_NORMAL = 1
-# PREV_VALS = [0, 255]
-# PREV = 0
-# ALL_ARRAY = []
-
 
 def is_silent(snd_data):
     """Checks if the input data is silent"""
