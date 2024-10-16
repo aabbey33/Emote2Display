@@ -1,5 +1,13 @@
 {
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.autoImportCompletions": true,
-  "cSpell.words": ["byteswap", "hstack", "mfcc", "mfccs", "stft", "tonnetz"]
+  "cSpell.words": [
+    "byteswap",
+    "hstack",
+    "mfcc",
+    "mfccs",
+    "RAVDESS",
+    "stft",
+    "tonnetz"
+  ]
 }

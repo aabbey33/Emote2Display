@@ -6,7 +6,6 @@ gesture, vocal, or physical controls
 """
 
 from array import array
-import glob
 import pickle
 import os
 import sys
@@ -17,14 +16,12 @@ import tkinter as tk
 import numpy as np
 import librosa
 import pyaudio
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
 import soundfile
 
-from live_emotion_ml import SILENCE, extract_feature
-
+import ModelHandler
 from sound_functions import add_silence, is_silent, trim
+
+SILENCE = 10
 
 SAMPLES = 1024  # 1024 samples per chunk
 FORMAT = pyaudio.paInt16
@@ -114,8 +111,12 @@ class Main:
             # Extracting Features / Primary audio
 
             try:
-                features = extract_feature(
-                    WAVE_OUTPUT_FILENAME, mfcc=True, chroma=True, mel=True
+                features = Main.extract_feature(
+                    self=Main(),
+                    file_name=WAVE_OUTPUT_FILENAME,
+                    mfcc=True,
+                    chroma=True,
+                    mel=True,
                 ).reshape(1, -1)
                 # predicting
                 result = self.model.predict(features)[0]
@@ -210,80 +211,6 @@ class Main:
         return result
 
 
-class Model:
-    """
-    Handles the ML model. mostly composed of
-    training and creation of the model
-    """
-
-    int2emotion = {
-        "01": "neutral",
-        "02": "calm",
-        "03": "happy",
-        "04": "sad",
-        "05": "angry",
-        "06": "fearful",
-        "07": "disgust",
-        "08": "surprised",
-    }
-
-    AVAILABLE_EMOTIONS = {"angry", "sad", "neutral", "happy"}
-
-    def load_data(self, test_size=0.2):
-        """Loading the sound files to train the ML model"""
-        sound_file_x, sound_file_y = [], []
-        for file in glob.glob("RAVDESS/data/Actor_*/*.wav"):
-            basename = os.path.basename(file)
-
-            emotion = self.int2emotion[basename.split("-")[2]]
-
-            if emotion not in self.AVAILABLE_EMOTIONS:
-                continue
-
-            features = extract_feature(file, mfcc=True, chroma=True, mel=True)
-
-            sound_file_x.append(features)
-            sound_file_y.append(emotion)
-        return train_test_split(
-            np.array(sound_file_x), sound_file_y, test_size=test_size, random_state=7
-        )
-
-    def train_model(self):
-        """trains the ML model"""
-        train_x, test_x, y_train, y_test = self.load_data(test_size=0.25)
-
-        # type: ignore
-        print("[+] Number of training samples:", train_x.shape[0])
-        # type: ignore
-        print("[+] Number of testing samples:", test_x.shape[0])
-        # type: ignore
-        print("[+] Number of features", train_x.shape[1])
-
-        model_params = {
-            "alpha": 0.1,
-            "batch_size": 256,
-            "epsilon": 1e-08,
-            "hidden_layer_sizes": (300,),
-            "learning_rate": "adaptive",
-            "max_iter": 500,
-        }
-
-        model = MLPClassifier(**model_params)
-
-        model.fit(train_x, y_train)
-
-        y_pred = model.predict(test_x)
-
-        accuracy = accuracy_score(y_true=y_test, y_pred=y_pred)
-
-        print(f"Accuracy: {accuracy * 100}%")
-
-        if not os.path.isdir("result"):
-            os.mkdir("result")
-
-        pickle.dump(model, open("result/mlp_classifier.model", "wb"))
-
-
 # Training our model
 # Model().train_model()
 
@@ -291,7 +218,7 @@ class Model:
 if __name__ == "__main__":
     if not os.path.isdir("result"):
         print("Model not detected! Training now...")
-        Model().train_model()
+        ModelHandler.train_model()
     Main()
 
 audio_stream.close()
