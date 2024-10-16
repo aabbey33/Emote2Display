@@ -149,3 +149,5 @@ result/
 .idea/Emote2Display.iml
 code_old.py
 sample.wav
+
+.vscode/
